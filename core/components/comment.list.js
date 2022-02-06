@@ -6,16 +6,22 @@ import {
 import {useEffect, useState} from "react";
 import {useMutation, useQuery} from "@apollo/client";
 import {GET_COMMENT, GET_COMMENTS} from "../graphQl/queries/comment.query";
-import {UPDATE_COMMENT} from "../graphQl/mutations/comment.mutation";
+import {CREATE_COMMENT, UPDATE_COMMENT} from "../graphQl/mutations/comment.mutation";
 import {GET_POSTS} from "../graphQl/queries/post.query";
 
 export default function CommentList ({comments, posts}) {
     const [form] = Form.useForm();
     const [selected, setSelectedKey] = useState(null);
+    const [isCreating, setIsCreating] = useState(false);
     const {data:comment, loading} = useQuery(GET_COMMENT, {
         variables: { id: selected }
     });
     const [updateComment, {data, loading:updateLoading}] = useMutation(UPDATE_COMMENT,{
+        refetchQueries: [
+            GET_COMMENTS, // DocumentNode object parsed with gql
+            // 'updatePost' // Query name
+        ],})
+    const [createComment] = useMutation(CREATE_COMMENT,{
         refetchQueries: [
             GET_COMMENTS, // DocumentNode object parsed with gql
             // 'updatePost' // Query name
@@ -30,17 +36,38 @@ export default function CommentList ({comments, posts}) {
         //connect > post_id
         //payload > body
         console.log(values);
-        updateComment({variables: {
+        isCreating && createComment({variables: {
+                payload: {body: values.body},
+                connect: {post_id: values.post},
+                status: "published"
+            }}).then(res => {
+            Modal.success({
+                content: 'Successfully Created.',
+                onOk: () => {
+                    form.resetFields();
+                    setSelectedKey(null);
+                }
+            });
+        }).catch(err => {
+            console.log(err.message)
+            Modal.error({
+                title: 'Create failed!',
+                content: err.message
+            })
+        })
+        !isCreating && updateComment({variables: {
                 id: selected,
                 payload: {body: values.body},
-                connect: {post_id: values.post}
+                connect: {post_id: values.post},
+                status: "published"
             }}).then(res => {
             Modal.success({
                 content: 'Successfully updated.',
             });
         }).catch(err => {
             Modal.error({
-                title: 'Update failed!'
+                title: 'Update failed!',
+                content: err.message
             })
         })
     };
@@ -52,7 +79,8 @@ export default function CommentList ({comments, posts}) {
                 theme="light"
                 onSelect={( {key} ) => {
                     console.log(key)
-                    setSelectedKey(key)
+                    setSelectedKey(key);
+                    setIsCreating(false);
                 }}
             >
                 {comments && Array.isArray(comments?.comments) && comments?.comments.length > 0 ?
@@ -68,17 +96,21 @@ export default function CommentList ({comments, posts}) {
         <Spin spinning={loading}>
             {!selected && <div style={{textAlign: 'center'}}>
                 <Empty imageStyle={{marginTop: 30}} description={false}/>
-                <Button icon={<PlusOutlined />} type="primary" size="small" htmlType="submit">
+                <Button icon={<PlusOutlined />} onClick={()=> {
+                    setIsCreating(true);
+                    setSelectedKey(true);
+                }}
+                        type="primary" size="small" htmlType="button">
                     Add New Comment
                 </Button>
             </div>}
             {selected && <Form layout="vertical" form={form} name="control-hooks" onFinish={onFinish}>
                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
                     <h3>
-                        Update Comment
+                        {isCreating ? 'Add New': 'Update'} Comment
                     </h3>
                     <Button  icon={<CloudUploadOutlined/>} type="default" htmlType="submit">
-                        update
+                        {isCreating ? 'Add New': 'Update'}
                     </Button>
                 </div>
                 <Form.Item name="body" label="Body">

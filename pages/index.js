@@ -18,7 +18,7 @@ import {GET_COMMENTS} from "../core/graphQl/queries/comment.query";
 
 export default function Home() {
     const [selectedMenu, setSelectedMenu] = useState('USER');
-    const {data:users} = useQuery(GET_USERS);
+    const {data:users} = useQuery(GET_USERS, {variables: {status: 'draft'}});
     const {data:posts} = useQuery(GET_POSTS);
     const {data:comments} = useQuery(GET_COMMENTS);
     console.log(users, posts, comments)

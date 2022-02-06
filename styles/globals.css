@@ -52,3 +52,16 @@ width: 265px
 .container .col.third{
 flex: 1;
 }
+.sun-editor {
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+.sun-editor .se-toolbar {
+  background: transparent !important;
+}.sun-editor .se-btn-module-border, .sun-editor .se-resizing-bar{
+  border: none !important;
+ }
+.sun-editor button>svg {
+  width: 12px !important;
+  height: 12px !important;
+}

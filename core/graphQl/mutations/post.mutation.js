@@ -1,8 +1,8 @@
 import {gql} from "@apollo/client";
 
 export const CREATE_POST = gql`
-mutation CreatePost($payload: post_create_payload!) {
-  createPost(payload: $payload) {
+mutation CreatePost($payload: post_create_payload!, $connect: post_input_connection_payload, $status: STATUS_TYPE_ENUM) {
+  createPost(payload: $payload, connect: $connect, status: $status) {
     id
     data {
       body {
@@ -22,8 +22,8 @@ mutation CreatePost($payload: post_create_payload!) {
 }`;
 
 export const UPDATE_POST = gql`
-mutation CreatePost( $id: String!, $payload: post_update_payload) {
-  updatePost(_id: $id, payload: $payload) {
+mutation updatePost( $id: String!, $payload: post_update_payload, $connect: post_input_connection_payload,$disconnect: post_input_disconnection_payload) {
+  updatePost(_id: $id, payload: $payload, connect: $connect, disconnect: $disconnect) {
     id
     data {
       title
